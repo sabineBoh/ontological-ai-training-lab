@@ -1,0 +1,10 @@
+Mini corpus — Groupe Vertalis (extrait de validation)
+Document de test technique, ne contenant volontairement que quelques faits.
+
+La plateforme NovaStay est en production depuis 2021 et sa criticité métier est critique.
+NovaStay est supportée par le prestataire Atlas Services, en support externalisé.
+NovaStay dépend du hub de données DataHub via des flux de données, flux jugé critique.
+L'application DataLakehouse est en cours de développement pour remplacer DataHub.
+LegacyOrder a été retirée du système d'information en 2025.
+
+Fin du mini corpus.

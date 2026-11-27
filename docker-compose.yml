@@ -1,0 +1,69 @@
+services:
+
+  outils:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ontological-ai-lab:dev
+    working_dir: /work
+    env_file:
+      - environments/.env.alone
+    environment:
+      OPENAI_API_KEY:
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./work:/work
+      - ./exercises:/work/exercises:ro
+      - ./datasets:/work/datasets:ro
+    stdin_open: true
+    tty: true
+
+  curategpt:
+    build:
+      context: .
+      dockerfile: Dockerfile.curategpt
+    image: ontological-curategpt:dev
+    working_dir: /work
+    env_file:
+      - environments/.env.alone
+    environment:
+      OPENAI_API_KEY:
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./work:/work
+      - curategpt_data:/work/curategpt
+    stdin_open: true
+    tty: true
+
+  learner:
+    build:
+      context: .
+      dockerfile: Dockerfile.learner
+    image: ontological-learner:dev
+    working_dir: /work
+    env_file:
+      - environments/.env.alone
+    environment:
+      OPENAI_API_KEY:
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./work:/work
+      - ./datasets:/work/datasets:ro
+    stdin_open: true
+    tty: true
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles:
+      - local-llm
+    environment:
+      OLLAMA_NO_CLOUD: "1"
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  curategpt_data:

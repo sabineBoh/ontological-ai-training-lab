@@ -1,0 +1,175 @@
+# ============================================================
+# Exercice 01 — LinkML : schéma "Enterprise Architecture"
+# Fichier : exercises/01-linkml/enterprise_architecture.yaml
+#
+# Concepts couverts : application, dépendance, statut,
+# criticité, support, processus métier.
+#
+# Ce même fichier sert ensuite de gabarit d'extraction
+# pour OntoGPT (exercice 02) : la classe Portfolio est
+# déclarée tree_root et les descriptions servent de
+# consignes pour le LLM.
+# ============================================================
+
+id: https://w3id.org/ea-lab/enterprise-architecture
+name: enterprise-architecture
+title: Enterprise Architecture Schema
+description: >-
+  Modèle décrivant le paysage applicatif d'une entreprise :
+  applications, dépendances entre applications, statut de cycle
+  de vie, criticité métier, équipe de support et processus métier.
+license: MIT
+
+default_prefix: ea
+default_range: string
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ea: https://w3id.org/ea-lab/enterprise-architecture/
+
+imports:
+  - linkml:types
+
+# ------------------------------------------------------------
+# Énumérations : vocabulaires fermés. Ce sont eux qui rendent
+# la validation utile (une valeur hors liste => erreur).
+# ------------------------------------------------------------
+enums:
+
+  ApplicationStatus:
+    description: Position de l'application dans son cycle de vie.
+    permissible_values:
+      IN_PRODUCTION:
+        description: En production, utilisée en conditions réelles.
+      UNDER_DEVELOPMENT:
+        description: En cours de développement, pas encore en production.
+      PILOT:
+        description: Déployée à titre expérimental sur un périmètre restreint.
+      DEPRECATED:
+        description: Toujours en production mais en fin de vie planifiée.
+      RETIRED:
+        description: Hors production, remplacée ou décommissionnée.
+
+  CriticalityLevel:
+    description: Criticité métier en cas d'indisponibilité de l'application.
+    permissible_values:
+      LOW:
+        description: Impact faible, sans incidence sur le métier.
+      MEDIUM:
+        description: Impact modéré, contournement possible.
+      HIGH:
+        description: Impact fort sur au moins un processus métier majeur.
+      CRITICAL:
+        description: Indisponibilité inacceptable pour l'entreprise.
+
+  DependencyType:
+    description: Nature du lien entre deux applications.
+    permissible_values:
+      DATA:
+        description: Échange ou partage de données (flux batch, API de données, référentiel).
+      SERVICE:
+        description: Appel de service synchrone (API, webservice).
+      MESSAGE_BUS:
+        description: Échange de messages asynchrones via un middleware.
+      INFRASTRUCTURE:
+        description: Dépendance d'infrastructure (hébergement, OS, réseau, base de données).
+      SOFTWARE_LICENSE:
+        description: Composant logiciel tiers sous licence commerciale obligatoire.
+
+  SupportProviderType:
+    description: Mode de fourniture du support.
+    permissible_values:
+      INTERNAL:
+        description: Support assuré par une équipe interne à l'entreprise.
+      OUTSOURCED:
+        description: Support externalisé chez un prestataire.
+      MIXED:
+        description: Support partagé entre équipes internes et prestataire externe.
+
+# ------------------------------------------------------------
+# Classes
+# ------------------------------------------------------------
+classes:
+
+  BusinessProcess:
+    description: Processus métier de l'entreprise appuyé par des applications.
+    attributes:
+      name:
+        description: Nom du processus métier, par exemple « Gestion des campagnes marketing ».
+        required: true
+      description:
+        description: Description synthétique du processus.
+
+  SupportTeam:
+    description: Équipe ou contrat assurant le support d'une application.
+    attributes:
+      team_name:
+        description: Nom de l'équipe de support ou du prestataire.
+        required: true
+      provider:
+        description: Mode de fourniture du support.
+        range: SupportProviderType
+      contact_email:
+        description: Adresse e-mail de contact du support.
+
+  ApplicationDependency:
+    description: Dépendance technique ou fonctionnelle entre deux applications.
+    attributes:
+      depends_on:
+        description: >-
+          Nom canonique de l'application cible de la dépendance
+          (celle dont l'application courante a besoin).
+        range: Application
+        required: true
+      dependency_type:
+        description: Nature de la dépendance.
+        range: DependencyType
+      is_critical_flow:
+        description: Vrai si l'interruption de ce flux bloque le métier.
+        range: boolean
+
+  Application:
+    description: Application du système d'information.
+    attributes:
+      name:
+        description: Nom canonique de l'application, unique dans le portefeuille.
+        identifier: true
+        required: true
+      description:
+        description: Description synthétique du rôle de l'application.
+      status:
+        description: Statut de cycle de vie de l'application.
+        range: ApplicationStatus
+      criticality:
+        description: Niveau de criticité métier de l'application.
+        range: CriticalityLevel
+      business_owner:
+        description: Direction ou entité métier responsable de l'application.
+      support:
+        description: Équipe ou prestataire en charge du support de l'application.
+        range: SupportTeam
+      processes:
+        description: Processus métier appuyés par cette application.
+        range: BusinessProcess
+        multivalued: true
+        inlined_as_list: true
+      dependencies:
+        description: Applications dont dépend cette application.
+        range: ApplicationDependency
+        multivalued: true
+        inlined_as_list: true
+
+  Portfolio:
+    description: Vue d'ensemble du paysage applicatif d'une entreprise.
+    tree_root: true
+    attributes:
+      source_document:
+        description: Origine du recensement (nom du document audité, cabinet, etc.).
+      as_of_date:
+        description: Date d'état des lieux du paysage applicatif.
+        range: date
+      applications:
+        description: Liste des applications recensées.
+        range: Application
+        multivalued: true
+        inlined_as_list: true

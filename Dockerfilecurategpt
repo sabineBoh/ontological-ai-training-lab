@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+ENV UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /work
+
+RUN uv venv /opt/venvs/curate
+
+# 1) torch CPU en premier (pas de nvidia-*, pas de triton)
+RUN uv pip install --python /opt/venvs/curate/bin/python \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+# 2) curategpt ensuite : torch est déjà satisfait
+RUN uv pip install --python /opt/venvs/curate/bin/python \
+    --prerelease=allow curategpt
+
+# 3) garde-fou : le build échoue si CUDA s'est glissé dans l'image
+RUN if uv pip list --python /opt/venvs/curate/bin/python | grep -Ei '^(nvidia|triton)'; then \
+      echo 'ERREUR : paquets NVIDIA/triton detectes' >&2; exit 1; fi \
+ && /opt/venvs/curate/bin/python -c 'import torch; print("torch", torch.__version__)'
+
+ENV PATH=/opt/venvs/curate/bin:${PATH}
+
+CMD ["bash"]
+

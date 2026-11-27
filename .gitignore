@@ -1,0 +1,37 @@
+# ==============================================
+# Ontological AI Training Lab
+# ==============================================
+
+# --- Secrets : jamais versionnés ---
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# .env.alone ne contient aucun secret : on le versionne
+!environments/.env.alone
+
+# --- Données générées pendant les exercices ---
+work/output/
+work/curategpt/
+# Les dossiers vides restent dans le dépôt grâce à un fichier .gitkeep
+# (work/input/.gitkeep, par exemple)
+
+# Cache litellm (réponses LLM rejouées)
+work/.litellm_cache/
+
+
+# --- Python / Jupyter ---
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# --- Éditeurs et système ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

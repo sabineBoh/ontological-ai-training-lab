@@ -1,0 +1,209 @@
+# ============================================================
+# Exercice 02 — OntoGPT : gabarit d'extraction "Enterprise Architecture"
+# Fichier : exercises/02-ontogpt/enterprise_architecture_ontogpt.yaml
+#
+# Dérivé du schéma de l'exercice 01, adapté à OntoGPT :
+#
+#  1. Les descriptions de slot sont les CONSIGNES envoyées au LLM.
+#  2. Pour une liste d'objets (applications, dépendances, ...),
+#     OntoGPT refait un appel LLM par élément, en ne lui transmettant
+#     QUE la chaîne écrite dans la liste, pas le texte complet.
+#     Les descriptions demandent donc des entrées autonomes.
+#  3. Le booléen is_critical_flow est remplacé par une énumération
+#     avec la valeur INCONNU : un booléen invalide fait planter
+#     OntoGPT 1.2.0 (ValidationError / bool_parsing).
+#  4. Un slot « required » laissé vide par le LLM fait planter OntoGPT
+#     (ValueError: Empty value in key-value line). On ne garde donc
+#     « required » que sur l'identifiant name, et la consigne demande
+#     de ne jamais le laisser vide.
+#  5. La date est lue comme du texte : le LLM répond en français
+#     ("15 novembre 2026"), ce qui ne se convertit pas en date.
+# ============================================================
+
+id: https://w3id.org/ea-lab/enterprise-architecture-ontogpt
+name: enterprise-architecture-ontogpt
+title: Enterprise Architecture - gabarit d'extraction OntoGPT
+description: >-
+  Gabarit d'extraction du paysage applicatif d'une entreprise :
+  applications, dépendances, statut, criticité, support et processus.
+license: MIT
+
+default_prefix: ea
+default_range: string
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ea: https://w3id.org/ea-lab/enterprise-architecture/
+
+imports:
+  - linkml:types
+
+enums:
+
+  ApplicationStatus:
+    description: Position de l'application dans son cycle de vie.
+    permissible_values:
+      IN_PRODUCTION:
+        description: En production, utilisée en conditions réelles.
+      UNDER_DEVELOPMENT:
+        description: En cours de développement, pas encore en production.
+      PILOT:
+        description: Déployée à titre expérimental sur un périmètre restreint.
+      DEPRECATED:
+        description: Toujours en production mais en fin de vie planifiée.
+      RETIRED:
+        description: Hors production, remplacée ou décommissionnée.
+
+  CriticalityLevel:
+    description: Criticité métier en cas d'indisponibilité de l'application.
+    permissible_values:
+      LOW:
+        description: Impact faible, sans incidence sur le métier.
+      MEDIUM:
+        description: Impact modéré, contournement possible.
+      HIGH:
+        description: Impact fort sur au moins un processus métier majeur.
+      CRITICAL:
+        description: Indisponibilité inacceptable pour l'entreprise.
+
+  DependencyType:
+    description: Nature du lien entre deux applications.
+    permissible_values:
+      DATA:
+        description: Échange ou partage de données (flux batch, API de données, référentiel).
+      SERVICE:
+        description: Appel de service synchrone (API, webservice).
+      MESSAGE_BUS:
+        description: Échange de messages asynchrones via un middleware.
+      INFRASTRUCTURE:
+        description: Dépendance d'infrastructure (hébergement, OS, réseau, base de données).
+      SOFTWARE_LICENSE:
+        description: Composant logiciel tiers sous licence commerciale obligatoire.
+
+  SupportProviderType:
+    description: Mode de fourniture du support.
+    permissible_values:
+      INTERNAL:
+        description: Support assuré par une équipe interne à l'entreprise.
+      OUTSOURCED:
+        description: Support externalisé chez un prestataire.
+      MIXED:
+        description: Support partagé entre équipes internes et prestataire externe.
+
+  YesNoUnknown:
+    description: Réponse oui / non, avec une valeur explicite si le texte ne dit rien.
+    permissible_values:
+      OUI:
+        description: Le texte l'affirme.
+      NON:
+        description: Le texte le nie.
+      INCONNU:
+        description: Le texte ne le précise pas.
+
+classes:
+
+  BusinessProcess:
+    description: Processus métier de l'entreprise appuyé par des applications.
+    attributes:
+      name:
+        description: Nom du processus métier, par exemple « Gestion des campagnes ».
+
+  SupportTeam:
+    description: Équipe ou contrat assurant le support d'une application.
+    attributes:
+      team_name:
+        description: Nom de l'équipe de support ou du prestataire.
+      provider:
+        description: >-
+          Mode de fourniture du support. Laisser vide si le texte ne le dit pas.
+        range: SupportProviderType
+      contact_email:
+        description: Adresse e-mail du support. Laisser vide si le texte n'en donne pas.
+
+  ApplicationDependency:
+    description: Dépendance entre deux applications.
+    attributes:
+      depends_on:
+        description: >-
+          Nom exact de l'application cible de la dépendance
+          (celle dont l'application courante a besoin).
+        range: Application
+      dependency_type:
+        description: >-
+          Nature de la dépendance. Laisser vide si le texte ne la précise pas.
+        range: DependencyType
+      is_critical_flow:
+        description: >-
+          Le texte dit-il que l'interruption de ce flux bloque le métier ?
+          Répondre OUI, NON ou INCONNU.
+        range: YesNoUnknown
+
+  Application:
+    description: Application du système d'information.
+    attributes:
+      name:
+        description: >-
+          Nom exact de l'application, tel qu'écrit dans le texte. Ne jamais
+          laisser ce champ vide : recopier le nom qui commence la phrase.
+        identifier: true
+        required: true
+      description:
+        description: Rôle de l'application en une courte phrase.
+      status:
+        description: >-
+          Statut de cycle de vie. Laisser vide si le texte ne le précise pas.
+        range: ApplicationStatus
+      criticality:
+        description: >-
+          Niveau de criticité métier. Laisser vide si le texte ne le précise pas.
+        range: CriticalityLevel
+      business_owner:
+        description: >-
+          Direction ou entité métier responsable. Laisser vide si le texte ne le dit pas.
+      support:
+        description: >-
+          Équipe ou prestataire de support, écrit sur une seule ligne :
+          nom, mode (INTERNAL, OUTSOURCED ou MIXED), e-mail s'il existe.
+          Séparer ces éléments par des virgules, jamais par des points-virgules.
+        range: SupportTeam
+      processes:
+        description: >-
+          Noms des processus métier appuyés par cette application,
+          séparés par des points-virgules.
+        range: BusinessProcess
+        multivalued: true
+        inlined_as_list: true
+      dependencies:
+        description: >-
+          Applications dont celle-ci dépend, séparées par des points-virgules.
+          Pour chacune, écrire sur une seule ligne : nom de l'application cible,
+          type de dépendance (DATA, SERVICE, MESSAGE_BUS, INFRASTRUCTURE ou
+          SOFTWARE_LICENSE), flux critique (OUI, NON ou INCONNU).
+          Séparer ces éléments par des virgules.
+        range: ApplicationDependency
+        multivalued: true
+        inlined_as_list: true
+
+  Portfolio:
+    description: Vue d'ensemble du paysage applicatif d'une entreprise.
+    tree_root: true
+    attributes:
+      source_document:
+        description: Titre du document audité et nom du cabinet.
+      as_of_date:
+        description: >-
+          Date de l'état des lieux, telle qu'écrite dans le texte.
+          Laisser vide si absente.
+      applications:
+        description: >-
+          Liste de TOUTES les applications citées, séparées par des
+          points-virgules. Pour CHAQUE application, écrire UNE seule phrase
+          autonome qui reprend tout ce que le texte dit à son sujet : nom,
+          statut, criticité, direction métier, support, processus métier
+          appuyés, applications dont elle dépend et type de dépendance.
+          Chaque phrase commence par le nom exact de l'application. Ne créer
+          aucune entrée pour autre chose qu'une application nommée.
+          N'utiliser aucun point-virgule à l'intérieur d'une phrase.
+        range: Application
+        multivalued: true
+        inlined_as_list: true

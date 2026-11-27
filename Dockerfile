@@ -1,69 +1,33 @@
 
 # ============================================================
 # Ontological AI Training Lab
-# Python 3.11 / LinkML / OntoGPT / CurateGPT / OntoLearner
+# Python 3.11 / LinkML / OntoGPT / Jupyter
 # ============================================================
 
 FROM python:3.11-slim
 
-# ------------------------------------------------------------
-# System dependencies
-# ------------------------------------------------------------
+ENV UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
+    PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    build-essential \
-    curl \
-    ca-certificates \
+    git build-essential curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------------
-# UV package manager
-# ------------------------------------------------------------
 
 RUN pip install --no-cache-dir uv
 
-ENV UV_LINK_MODE=copy
-ENV UV_NO_CACHE=1
-
-# ------------------------------------------------------------
-# Python virtual environments
-# ------------------------------------------------------------
-
-ENV VENVS=/opt/venvs
-
-# 1. LinkML + OntoGPT
-RUN uv venv $VENVS/onto \
-    && uv pip install --python $VENVS/onto/bin/python \
-       ontogpt linkml
-
-# 2. CurateGPT
-RUN uv venv $VENVS/curate \
-    && uv pip install --python $VENVS/curate/bin/python \
-       curategpt
-
-# 3. OntoLearner + PyTorch CPU
-RUN uv venv $VENVS/learner \
-    && uv pip install --python $VENVS/learner/bin/python \
-       ontolearner \
-       --extra-index-url https://download.pytorch.org/whl/cpu
-
-# ------------------------------------------------------------
-# Environment configuration
-# ------------------------------------------------------------
-
-ENV VENV_ONTO=/opt/venvs/onto
-ENV VENV_CURATE=/opt/venvs/curate
-ENV VENV_LEARNER=/opt/venvs/learner
-
-# OpenAI API key is supplied at runtime.
-# NEVER store the key in the Docker image.
-
 WORKDIR /work
 
-# ------------------------------------------------------------
-# Default command
-# ------------------------------------------------------------
+RUN uv venv /opt/venvs/onto \
+&& uv pip install --python /opt/venvs/onto/bin/python \
+   ontogpt==1.2.0 linkml==1.12.1 jupyterlab ipykernel "litellm[caching]==1.95.1" \
+&& /opt/venvs/onto/bin/python -c \
+   "from litellm.types.caching import LiteLLMCacheType as T; \
+    assert hasattr(T, 'DISK'), 'litellm incompatible avec ontogpt 1.2.0'"
+	
+ENV PATH=/opt/venvs/onto/bin:${PATH}
 
+# La clé OpenAI est fournie à l'exécution, jamais dans l'image.
 CMD ["bash"]
+
 

@@ -1,0 +1,32 @@
+id: https://example.org/atelier/personnes
+name: personnes
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ex: https://example.org/atelier/
+default_prefix: ex
+imports:
+  - linkml:types
+classes:
+  Personne:
+    slots:
+      - nom
+      - age
+      - a_des_amis
+  CollectionPersonnes:
+    tree_root: true
+    attributes:
+      membres:
+        range: Personne
+        multivalued: true
+        inlined_as_list: true
+slots:
+  nom:
+    identifier: true
+    range: string
+  age:
+    range: integer
+    minimum_value: 0
+    maximum_value: 130
+  a_des_amis:
+    range: Personne
+    multivalued: true

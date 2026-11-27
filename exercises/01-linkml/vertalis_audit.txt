@@ -1,0 +1,21 @@
+Audit du patrimoine applicatif — Groupe Vertalis
+Cabinet Meridian Consulting — extraits remis au comité d'architecture
+État des lieux arrêté au 15 novembre 2026
+
+Le présent document synthétise l'état du système d'information du Groupe Vertalis, spécialiste de la logistique hôtelière. Il complète l'inventaire transmis en mars et intègre les décisions du comité d'architecture du 2 octobre 2026.
+
+La plateforme CRM NovaStay est en production depuis 2021 et est considérée comme critique : aucune indisponibilité prolongée n'est tolérée pour la force de vente. Elle est portée par la Direction Commerciale et son support est assuré par l'ESN Atlas Services (support externalisé, astreinte 24/7, adresse crm-support@atlas-services.example). NovaStay soutient le processus « Gestion des campagnes » et dépend à la fois du hub de données DataHub pour les référentiels clients et de la passerelle PaymentBridge pour l'encaissement des devis acceptés. Le flux de données vers DataHub est critique.
+
+PaymentBridge, en production et de criticité critique, est la passerelle d'encaissement développée en interne ; sa maintenance est assurée par l'équipe Middleware (support interne). PaymentBridge s'appuie sur le module anti-fraud CardShield, un composant tiers sous licence commerciale obligatoire.
+
+DataHub, en production et de criticité haute, centralise les référentiels clients, articles et tarifs ; il est opéré par l'équipe Data (support interne). Une refonte nommée DataLakehouse est en cours de développement pour remplacer DataHub d'ici fin 2027 ; le support de DataLakehouse sera assuré en interne par cette même équipe Data.
+
+Le middleware FlowBus, en production et de criticité haute, assure les échanges de messages entre NovaStay, StockFlow et BillingCore ; il est exploité par le prestataire TechnoRun (support externalisé, 8h-20h). FlowBus est indispensable au processus « Facturation », porté par BillingCore, application en production de criticité haute, dont le responsable métier est la Direction Finance et le support interne l'équipe Apps Finance.
+
+StockFlow, l'application de gestion des stocks, est toujours en production mais le comité d'architecture l'a déclarée obsolète : elle doit être remplacée par Supply360, actuellement en pilote auprès de deux entrepôts. Supply360 bénéficie d'un support mixte : exploitation interne par la DSI, correctifs assurés par l'éditeur Northgate. Le processus « Gestion des stocks » repose aujourd'hui sur StockFlow et sur MobileScan, application mobile en pilote supportée par la DSI (interne). MobileScan se synchronise avec DataHub via des flux de données quotidiens.
+
+LegacyOrder, l'ancien système de prise de commandes, a été retiré en 2025 et remplacé par OrderPortal, en production depuis janvier 2026, de criticité haute. OrderPortal est porté par la Direction Supply Chain et supportée par le prestataire BlueOps (support externalisé). OrderPortal relaie ses commandes vers StockFlow via le bus FlowBus.
+
+Enfin, le processus « Pilotage consolidé » s'appuie sur ReportingHub, application en production de criticité moyenne portée par la Direction Finance, qui collecte les données de BillingCore et de StockFlow chaque nuit.
+
+Fin de l'extrait.

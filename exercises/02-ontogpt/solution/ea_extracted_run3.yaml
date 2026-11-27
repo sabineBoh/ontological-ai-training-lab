@@ -1,0 +1,208 @@
+---
+input_text: |-
+  Audit du patrimoine applicatif — Groupe Vertalis
+  Cabinet Meridian Consulting — extraits remis au comité d'architecture
+  État des lieux arrêté au 15 novembre 2026
+  
+  Le présent document synthétise l'état du système d'information du Groupe Vertalis, spécialiste de la logistique hôtelière. Il complète l'inventaire transmis en mars et intègre les décisions du comité d'architecture du 2 octobre 2026.
+  
+  La plateforme CRM NovaStay est en production depuis 2021 et est considérée comme critique : aucune indisponibilité prolongée n'est tolérée pour la force de vente. Elle est portée par la Direction Commerciale et son support est assuré par l'ESN Atlas Services (support externalisé, astreinte 24/7, adresse crm-support@atlas-services.example). NovaStay soutient le processus « Gestion des campagnes » et dépend à la fois du hub de données DataHub pour les référentiels clients et de la passerelle PaymentBridge pour l'encaissement des devis acceptés. Le flux de données vers DataHub est critique.
+  
+  PaymentBridge, en production et de criticité critique, est la passerelle d'encaissement développée en interne ; sa maintenance est assurée par l'équipe Middleware (support interne). PaymentBridge s'appuie sur le module anti-fraud CardShield, un composant tiers sous licence commerciale obligatoire.
+  
+  DataHub, en production et de criticité haute, centralise les référentiels clients, articles et tarifs ; il est opéré par l'équipe Data (support interne). Une refonte nommée DataLakehouse est en cours de développement pour remplacer DataHub d'ici fin 2027 ; le support de DataLakehouse sera assuré en interne par cette même équipe Data.
+  
+  Le middleware FlowBus, en production et de criticité haute, assure les échanges de messages entre NovaStay, StockFlow et BillingCore ; il est exploité par le prestataire TechnoRun (support externalisé, 8h-20h). FlowBus est indispensable au processus « Facturation », porté par BillingCore, application en production de criticité haute, dont le responsable métier est la Direction Finance et le support interne l'équipe Apps Finance.
+  
+  StockFlow, l'application de gestion des stocks, est toujours en production mais le comité d'architecture l'a déclarée obsolète : elle doit être remplacée par Supply360, actuellement en pilote auprès de deux entrepôts. Supply360 bénéficie d'un support mixte : exploitation interne par la DSI, correctifs assurés par l'éditeur Northgate. Le processus « Gestion des stocks » repose aujourd'hui sur StockFlow et sur MobileScan, application mobile en pilote supportée par la DSI (interne). MobileScan se synchronise avec DataHub via des flux de données quotidiens.
+  
+  LegacyOrder, l'ancien système de prise de commandes, a été retiré en 2025 et remplacé par OrderPortal, en production depuis janvier 2026, de criticité haute. OrderPortal est porté par la Direction Supply Chain et supportée par le prestataire BlueOps (support externalisé). OrderPortal relaie ses commandes vers StockFlow via le bus FlowBus.
+  
+  Enfin, le processus « Pilotage consolidé » s'appuie sur ReportingHub, application en production de criticité moyenne portée par la Direction Finance, qui collecte les données de BillingCore et de StockFlow chaque nuit.
+  
+  Fin de l'extrait.
+raw_completion_output: |-
+  source_document: Audit du patrimoine applicatif — Groupe Vertalis, Cabinet Meridian Consulting  
+  as_of_date: 15 novembre 2026  
+  applications: NovaStay est en production depuis 2021, est critique car aucune indisponibilité prolongée n’est tolérée pour la force de vente, est portée par la Direction Commerciale et bénéficie du support externalisé d’Atlas Services avec une astreinte 24/7 à crm-support@atlas-services.example ; elle soutient le processus « Gestion des campagnes » et dépend de DataHub pour les référentiels clients ainsi que de PaymentBridge pour l’encaissement des devis acceptés, le flux de données vers DataHub étant critique ; PaymentBridge est en production et de criticité critique, est une passerelle d’encaissement développée en interne et maintenue par l’équipe Middleware en support interne, et s’appuie sur CardShield, module anti-fraude tiers soumis à une licence commerciale obligatoire ; DataHub est en production et de criticité haute, centralise les référentiels clients, articles et tarifs et est opéré par l’équipe Data en support interne, et doit être remplacé d’ici fin 2027 par DataLakehouse ; DataLakehouse est en cours de développement pour remplacer DataHub d’ici fin 2027 et sera supporté en interne par l’équipe Data ; FlowBus est en production et de criticité haute, assure les échanges de messages entre NovaStay, StockFlow et BillingCore, est exploité par TechnoRun en support externalisé de 8 h à 20 h et est indispensable au processus « Facturation » porté par BillingCore ; BillingCore est en production et de criticité haute, porte le processus « Facturation », a pour responsable métier la Direction Finance et bénéficie du support interne de l’équipe Apps Finance, tandis que FlowBus est indispensable à son processus de facturation et assure les échanges de messages avec lui ; StockFlow est l’application de gestion des stocks, toujours en production mais déclarée obsolète par le comité d’architecture, doit être remplacée par Supply360 et participe aujourd’hui au processus « Gestion des stocks » avec MobileScan, échange des messages via FlowBus, reçoit les commandes d’OrderPortal via FlowBus et fournit chaque nuit des données à ReportingHub ; Supply360 est actuellement en pilote auprès de deux entrepôts pour remplacer StockFlow et bénéficie d’un support mixte avec l’exploitation assurée en interne par la DSI et les correctifs par l’éditeur Northgate ; MobileScan est une application mobile en pilote, supportée en interne par la DSI, participe au processus « Gestion des stocks » avec StockFlow et se synchronise avec DataHub par des flux de données quotidiens ; LegacyOrder est l’ancien système de prise de commandes, retiré en 2025 et remplacé par OrderPortal ; OrderPortal est en production depuis janvier 2026 et de criticité haute, est porté par la Direction Supply Chain, bénéficie du support externalisé du prestataire BlueOps et relaie ses commandes vers StockFlow via FlowBus ; ReportingHub est en production et de criticité moyenne, est porté par la Direction Finance, soutient le processus « Pilotage consolidé » et collecte chaque nuit les données de BillingCore et de StockFlow.
+prompt: |+
+  Split the following piece of text into fields in the following format:
+
+  depends_on: <Nom exact de l'application cible de la dépendance (celle dont l'application courante a besoin).>
+  dependency_type: <Nature de la dépendance. Laisser vide si le texte ne la précise pas.Must be one of: DATA, SERVICE, MESSAGE_BUS, INFRASTRUCTURE, SOFTWARE_LICENSE>
+  is_critical_flow: <Le texte dit-il que l'interruption de ce flux bloque le métier ? Répondre OUI, NON ou INCONNU.Must be one of: OUI, NON, INCONNU>
+
+
+  Text:
+  StockFlow, DATA, INCONNU
+
+  ===
+
+extracted_object:
+  source_document: Audit du patrimoine applicatif — Groupe Vertalis, Cabinet 
+    Meridian Consulting
+  as_of_date: 15 novembre 2026
+  applications:
+    - name: NovaStay
+      description: Application utilisée par la force de vente.
+      status: IN_PRODUCTION
+      criticality: CRITICAL
+      business_owner: Direction Commerciale
+      support:
+        team_name: Atlas Services
+        provider: OUTSOURCED
+        contact_email: crm-support@atlas-services.example
+      processes:
+        - name: Force de vente
+    - name: elle
+      description: Soutient le processus « Gestion des campagnes » et contribue 
+        à l’encaissement des devis acceptés.
+      dependencies:
+        - depends_on: AUTO:DataHub
+          dependency_type: DATA
+          is_critical_flow: OUI
+        - depends_on: AUTO:PaymentBridge
+          dependency_type: SERVICE
+          is_critical_flow: INCONNU
+    - name: PaymentBridge
+      description: Passerelle d’encaissement développée en interne.
+      status: IN_PRODUCTION
+      criticality: CRITICAL
+      processes:
+        - name: Encaissement.
+      dependencies:
+        - depends_on: AUTO:CardShield
+          dependency_type: SOFTWARE_LICENSE
+          is_critical_flow: INCONNU
+    - name: DataHub
+      description: Centralise les référentiels clients, articles et tarifs.
+      status: IN_PRODUCTION
+      criticality: HIGH
+    - name: DataLakehouse
+      description: Application en cours de développement destinée à remplacer 
+        DataHub d’ici fin 2027.
+      status: UNDER_DEVELOPMENT
+    - name: FlowBus
+      description: Assure les échanges de messages entre NovaStay, StockFlow et 
+        BillingCore.
+      status: IN_PRODUCTION
+      criticality: HIGH
+      processes:
+        - name: Facturation.
+    - name: BillingCore
+      description: Application de facturation qui porte le processus « 
+        Facturation ».
+      status: IN_PRODUCTION
+      criticality: HIGH
+      business_owner: Direction Finance
+      support:
+        team_name: équipe Apps Finance
+        provider: INTERNAL
+      processes:
+        - name: Facturation.
+      dependencies:
+        - depends_on: AUTO:FlowBus
+          dependency_type: MESSAGE_BUS
+          is_critical_flow: OUI
+    - name: StockFlow
+      description: Application de gestion des stocks.
+      status: DEPRECATED
+      dependencies:
+        - depends_on: AUTO:FlowBus
+          dependency_type: MESSAGE_BUS
+          is_critical_flow: INCONNU
+        - depends_on: AUTO:OrderPortal
+          dependency_type: DATA
+          is_critical_flow: INCONNU
+    - name: Supply360
+      description: Application en pilote dans deux entrepôts pour remplacer 
+        StockFlow.
+      status: PILOT
+    - name: MobileScan
+      description: Application mobile participant à la gestion des stocks.
+      status: PILOT
+      processes:
+        - name: Gestion des stocks
+      dependencies:
+        - depends_on: AUTO:DataHub
+          dependency_type: DATA
+          is_critical_flow: INCONNU
+    - name: LegacyOrder
+      description: Ancien système de prise de commandes.
+      status: RETIRED
+    - name: OrderPortal
+      description: Relaye les commandes vers StockFlow via FlowBus.
+      status: IN_PRODUCTION
+      criticality: HIGH
+      business_owner: Direction Supply Chain
+      support:
+        team_name: BlueOps
+        provider: OUTSOURCED
+      processes:
+        - name: Gestion des commandes
+      dependencies:
+        - depends_on: AUTO:FlowBus
+          dependency_type: MESSAGE_BUS
+          is_critical_flow: OUI
+        - depends_on: AUTO:StockFlow
+          dependency_type: SERVICE
+          is_critical_flow: OUI
+    - name: ReportingHub
+      description: Collecte chaque nuit des données pour le pilotage consolidé.
+      status: IN_PRODUCTION
+      criticality: MEDIUM
+      business_owner: Direction Finance
+      dependencies:
+        - depends_on: AUTO:BillingCore
+          dependency_type: DATA
+          is_critical_flow: INCONNU
+        - depends_on: AUTO:StockFlow
+          dependency_type: DATA
+          is_critical_flow: INCONNU
+named_entities:
+  - id: AUTO:DataHub
+    label: DataHub
+    original_spans:
+      - 840:846
+      - 976:982
+      - 1303:1309
+      - 1535:1541
+      - 2594:2600
+  - id: AUTO:PaymentBridge
+    label: PaymentBridge
+    original_spans:
+      - 898:910
+      - 1001:1013
+      - 1183:1195
+  - id: AUTO:CardShield
+    label: CardShield
+    original_spans:
+      - 1231:1240
+  - id: AUTO:FlowBus
+    label: FlowBus
+    original_spans:
+      - 1656:1662
+      - 1853:1859
+      - 2973:2979
+  - id: AUTO:OrderPortal
+    label: OrderPortal
+    original_spans:
+      - 2731:2741
+      - 2799:2809
+      - 2914:2924
+  - id: AUTO:StockFlow
+    label: StockFlow
+    original_spans:
+      - 1750:1758
+      - 2078:2086
+      - 2473:2481
+      - 2952:2960
+      - 3181:3189
+  - id: AUTO:BillingCore
+    label: BillingCore
+    original_spans:
+      - 1763:1773
+      - 1919:1929
+      - 3163:3173
+validation:
+  validator: linkml-term-validator 0.4.5

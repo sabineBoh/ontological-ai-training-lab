@@ -1,0 +1,145 @@
+# ============================================================
+# Exercice 02 — OntoGPT : gabarit d'extraction APLATI (v3)
+# Fichier : exercises/02-ontogpt/enterprise_architecture_flat.yaml
+#
+# Principes de robustesse (issus des crashs du 26/11) :
+#  - Aucune classe imbriquée dans une classe imbriquée :
+#    Portfolio -> Application seulement, un sous-appel LLM
+#    par application, à slots 100% scalaires.
+#  - Support et dépendances = chaînes à convention de format,
+#    pas des objets : "Atlas Services, OUTSOURCED, crm@..."
+#    et "DataHub, DATA, OUI".
+#  - Dates et booléens en texte/énumération (jamais date/boolean
+#    natifs : le LLM répond en prose et pydantic crash).
+#  - Tout slot facultatif se termine par "Laisser vide si le
+#    texte ne le précise pas" pour éviter les "name:" vides.
+#  - Les valeurs d'énumération sont en MAJUSCULES ANGLAISES,
+#    les descriptions en français : le modèle copie le terme,
+#    pas la langue du texte.
+# ============================================================
+
+id: https://w3id.org/ea-lab/enterprise-architecture-flat
+name: enterprise-architecture-flat
+title: Enterprise Architecture - gabarit OntoGPT aplati
+description: >-
+  Extraction aplatie du paysage applicatif : une entrée par
+  application, champs simples, conventions de format pour les
+  listes. Conçu pour maximiser la fiabilité d'OntoGPT.
+license: MIT
+
+default_prefix: ea
+default_range: string
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ea: https://w3id.org/ea-lab/enterprise-architecture/
+
+imports:
+  - linkml:types
+
+enums:
+
+  ApplicationStatus:
+    description: Statut de cycle de vie d'une application.
+    permissible_values:
+      IN_PRODUCTION:
+        description: En production, utilisée en conditions réelles.
+      UNDER_DEVELOPMENT:
+        description: En cours de développement, pas encore en production.
+      PILOT:
+        description: Déployée à titre expérimental sur un périmètre restreint.
+      DEPRECATED:
+        description: Toujours en production mais en fin de vie planifiée.
+      RETIRED:
+        description: Hors production, remplacée ou décommissionnée.
+
+  CriticalityLevel:
+    description: Criticité métier en cas d'indisponibilité.
+    permissible_values:
+      LOW:
+        description: Impact faible.
+      MEDIUM:
+        description: Impact modéré, contournement possible.
+      HIGH:
+        description: Impact fort sur un processus métier majeur.
+      CRITICAL:
+        description: Indisponibilité inacceptable pour l'entreprise.
+
+classes:
+
+  Application:
+    description: >-
+      Une application du système d'information. Tous les champs
+      sont plats : jamais d'objet imbriqué.
+    attributes:
+      name:
+        description: >-
+          Nom exact de l'application, tel qu'écrit dans le texte,
+          sur une seule ligne. Ne jamais laisser ce champ vide.
+        identifier: true
+        required: true
+      description:
+        description: Rôle de l'application en une courte phrase.
+      status:
+        description: >-
+          Statut de cycle de vie. Copier EXACTEMENT l'un des termes
+          IN_PRODUCTION, UNDER_DEVELOPMENT, PILOT, DEPRECATED ou
+          RETIRED. Laisser vide si le texte ne le précise pas.
+        range: ApplicationStatus
+      criticality:
+        description: >-
+          Criticité métier. Copier EXACTEMENT l'un des termes LOW,
+          MEDIUM, HIGH ou CRITICAL. Laisser vide si non précisé.
+        range: CriticalityLevel
+      business_owner:
+        description: >-
+          Direction ou entité métier responsable, en une seule ligne.
+          Laisser vide si le texte ne le précise pas.
+      support_name:
+        description: >-
+          Nom de l'équipe ou du prestataire de support, en une seule
+          ligne. Laisser vide si le texte ne le précise pas.
+      support_mode:
+        description: >-
+          Mode de support. Copier EXACTEMENT INTERNAL, OUTSOURCED ou
+          MIXED. Laisser vide si le texte ne le précise pas.
+      support_email:
+        description: >-
+          Adresse e-mail de contact du support, sans commentaire autour.
+          Laisser vide si le texte n'en mentionne pas.
+      processes:
+        description: >-
+          Processus métier appuyés par cette application. Si plusieurs,
+          les séparer par des points-virgules, un seul point-virgule
+          entre deux noms. Laisser vide si aucun.
+      dependencies:
+        description: >-
+          Applications dont celle-ci dépend. Une dépendance par entrée,
+          au format strict : NOM-CIBLE, TYPE, FLUX-CRITIQUE où TYPE est
+          l'un de DATA, SERVICE, MESSAGE_BUS, INFRASTRUCTURE,
+          SOFTWARE_LICENSE et FLUX-CRITIQUE est l'un de OUI, NON,
+          INCONNU. Séparer les dépendances par des points-virgules.
+          Exemple exact : DataHub, DATA, OUI. Laisser vide si aucune.
+      replaced_by:
+        description: >-
+          Nom de l'application appelée à remplacer celle-ci, si le texte
+          l'indique. Une seule ligne. Laisser vide sinon.
+
+  Portfolio:
+    description: Vue d'ensemble du paysage applicatif.
+    tree_root: true
+    attributes:
+      source_document:
+        description: Titre du document audité et nom du cabinet d'audit.
+      as_of_date:
+        description: >-
+          Date de l'état des lieux, recopiée telle quelle du texte,
+          en une seule ligne. Laisser vide si absente.
+      applications:
+        description: >-
+          Noms de TOUTES les applications citées dans le texte,
+          séparés par des points-virgules, y compris celles retirées
+          ou en projet. Aucun point-virgule à l'intérieur d'un nom.
+        multivalued: true
+        inlined_as_list: true
+        range: string

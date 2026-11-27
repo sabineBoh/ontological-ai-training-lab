@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+ENV UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git build-essential curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /work
+
+RUN uv venv /opt/venvs/learner
+
+RUN uv pip install --python /opt/venvs/learner/bin/python \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+RUN uv pip install --python /opt/venvs/learner/bin/python ontolearner
+
+RUN if uv pip list --python /opt/venvs/learner/bin/python | grep -Ei '^(nvidia|triton)'; then \
+      echo 'ERREUR : paquets NVIDIA/triton detectes' >&2; exit 1; fi
+
+ENV PATH=/opt/venvs/learner/bin:${PATH}
+
+CMD ["bash"]

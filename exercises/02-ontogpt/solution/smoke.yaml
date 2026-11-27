@@ -1,0 +1,44 @@
+---
+input_text: |
+  Mini corpus — Groupe Vertalis (extrait de validation)
+  Document de test technique, ne contenant volontairement que quelques faits.
+
+  La plateforme NovaStay est en production depuis 2021 et sa criticité métier est critique.
+  NovaStay est supportée par le prestataire Atlas Services, en support externalisé.
+  NovaStay dépend du hub de données DataHub via des flux de données, flux jugé critique.
+  L'application DataLakehouse est en cours de développement pour remplacer DataHub.
+  LegacyOrder a été retirée du système d'information en 2025.
+
+  Fin du mini corpus.
+raw_completion_output: |-
+  source_document: Mini corpus — Groupe Vertalis (extrait de validation) — cabinet non indiqué.
+  as_of_date:
+  applications: NovaStay est en production depuis 2021, sa criticité métier est critique et elle est supportée par Atlas Services en support externalisé, mais le texte ne précise ni direction métier ni processus métier appuyés, et elle dépend de DataHub via des flux de données jugés critiques.; DataHub est un hub de données dont dépend NovaStay via des flux de données jugés critiques, mais le texte ne précise ni son statut, ni sa criticité propre, ni sa direction métier, ni son support, ni les processus métier qu’il appuie.; DataLakehouse est en cours de développement pour remplacer DataHub, mais le texte ne précise ni sa criticité, ni sa direction métier, ni son support, ni les processus métier qu’elle appuie, ni ses dépendances.; LegacyOrder a été retirée du système d’information en 2025, mais le texte ne précise ni sa criticité, ni sa direction métier, ni son support, ni les processus métier qu’elle appuyait, ni ses dépendances.
+prompt: |+
+  From the text below, extract the following entities in the following format:
+
+  source_document: <Titre du document audité et nom du cabinet.>
+  as_of_date: <Date de l'état des lieux, telle qu'écrite dans le texte. Laisser vide si absente.>
+  applications: <Liste de TOUTES les applications citées, séparées par des points-virgules. Pour CHAQUE application, écrire UNE seule phrase autonome qui reprend tout ce que le texte dit à son sujet : nom, statut, criticité, direction métier, support, processus métier appuyés, applications dont elle dépend et type de dépendance. Chaque phrase commence par le nom exact de l'application. Ne créer aucune entrée pour autre chose qu'une application nommée. N'utiliser aucun point-virgule à l'intérieur d'une phrase.>
+
+
+  Text:
+  Mini corpus — Groupe Vertalis (extrait de validation)
+  Document de test technique, ne contenant volontairement que quelques faits.
+
+  La plateforme NovaStay est en production depuis 2021 et sa criticité métier est critique.
+  NovaStay est supportée par le prestataire Atlas Services, en support externalisé.
+  NovaStay dépend du hub de données DataHub via des flux de données, flux jugé critique.
+  L'application DataLakehouse est en cours de développement pour remplacer DataHub.
+  LegacyOrder a été retirée du système d'information en 2025.
+
+  Fin du mini corpus.
+
+
+  ===
+
+extracted_object:
+  source_document: Mini corpus — Groupe Vertalis (extrait de validation) — 
+    cabinet non indiqué.
+validation:
+  validator: linkml-term-validator 0.4.5
